@@ -207,28 +207,7 @@ public class SFSGameRoom : MonoBehaviour
     void FixedUpdate()
     {
         sfConnectObj.ProcessEvents();
-    }
-
-    // Countdown for starting game...
-    IEnumerator CountDown(int time)
-    {
-        imgLama.SetActive(false);
-        sfStatus.SetActive(true);
-        sfStatus.GetComponent<tk2dTextMesh>().text = "Chuẩn bị vào trận đấu";
-        for (int i = time; i >= 0; i--)
-        {
-            sfStatusNumber.GetComponent<tk2dTextMesh>().text = i.ToString();
-            yield return new WaitForSeconds(1);
-        }
-        sfStatus.SetActive(false);
-        if(isHost)
-        {
-            SmartFoxConnection.SendStartCommandToServer();
-        }
-        //isStarted = true;
-    }
-
-    //void
+    }   
 
     IEnumerator WaitForOpponent(int time)
     {

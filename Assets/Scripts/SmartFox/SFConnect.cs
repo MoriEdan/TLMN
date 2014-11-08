@@ -41,6 +41,8 @@ public class SFConnect : MonoBehaviour {
     {
         sfStatus = GameObject.Find("TxtConnectStatus") as GameObject;
         sfStatus.GetComponent<tk2dTextMesh>().text = "Connecting...";
+
+
     }
 
     // Update is called once per frame

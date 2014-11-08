@@ -28,7 +28,7 @@ public class AIPlayer : Player {
                         if (GameManager.RoundPlayer == GameManager.CurrentPlayer)
                         {
                             GameManager.CurrentHand = new Hand(new List<Card>());
-                            GameManager.NewRound(GameManager.CurrentPlayer, GameManager);
+                            //GameManager.NewRound(GameManager.CurrentPlayer, GameManager);
                         }
                         Hand hand = GetMove();
                         if (hand != null)

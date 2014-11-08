@@ -178,6 +178,14 @@
     <Compile Include="Assets\TK2DROOT\tk2d_demo\tk2dDemoCameraController.cs" />
     <Compile Include="Assets\TK2DROOT\tk2d_demo\tk2dDemoReloadController.cs" />
     <Compile Include="Assets\TK2DROOT\tk2d_demo\tk2dDemoRuntimeSpriteController.cs" />
+    <Compile Include="Assets\TinhVC\ApiEntity\ApiEntity.cs" />
+    <Compile Include="Assets\TinhVC\Controllibs\LamaControllib.cs" />
+    <Compile Include="Assets\TinhVC\JSON.cs" />
+    <Compile Include="Assets\TinhVC\JsonMethod.cs" />
+    <Compile Include="Assets\TinhVC\Models\FriendModel.cs" />
+    <Compile Include="Assets\TinhVC\Models\NumberCardModel.cs" />
+    <Compile Include="Assets\TinhVC\Models\XPModel.cs" />
+    <Compile Include="Assets\TinhVC\ServiceFramwokDemo.cs" />
     <None Include="Assets\Font\NhomMua.txt" />
     <None Include="Assets\JMO Assets\Cartoon FX\Shaders (Mobile)\CFXM_MobileParticleAdd_Alpha8.shader" />
     <None Include="Assets\Plugins\Pixelplacement\iTween\ReadMe!\ReadMe!.txt" />

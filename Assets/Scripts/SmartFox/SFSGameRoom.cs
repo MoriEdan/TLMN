@@ -71,7 +71,7 @@ public class SFSGameRoom : MonoBehaviour
     private GameObject txtOrder;
     private GameObject txtCurrentPlayerOrder;
     private GameObject txtCurrentHandType;
-
+    private int test;
     void Awake()
     {
         txtOrder = GameObject.Find("Order");
@@ -103,7 +103,6 @@ public class SFSGameRoom : MonoBehaviour
         // Disable this for playing online :D :D
         //CreatePlayers(numberPlayer);
         currentPlayerIndex = 0;
-        //currentPlayer = players[currentPlayerIndex];
 
         allCards = new List<Card>();
 
@@ -169,21 +168,10 @@ public class SFSGameRoom : MonoBehaviour
         {
             case GameState.Idle:
                 {
-                    if (isStarted)
-                    {
-                        //gameState = GameState.Deal;
-                    }
                     break;
                 }
             case GameState.Deal:
                 {
-                    if(isHost)
-                    {
-                        allCards = Shuffle(allCards);
-                        DealCards(allCards, order);
-                        SmartFoxConnection.SendFourListCardsToServer(allCards);
-                    }
-                    //gameState = GameState.Play;
                     break;
                 }
             case GameState.Play:
@@ -247,7 +235,7 @@ public class SFSGameRoom : MonoBehaviour
                 {
                     int tempPlayerIndex = dataObj.GetByte("PlayerIndex");
                     this.CurrentHand = new Hand(new List<Card>());
-                    this.NewRound(this.players[tempPlayerIndex], this);
+                    //this.NewRound(this.players[tempPlayerIndex], this);
                     break;
                 }
             default:
@@ -265,20 +253,20 @@ public class SFSGameRoom : MonoBehaviour
         {
             case "Start":
                 {
-                    if(!isStarted)
-                    {
-                        order = dataObj.GetByte("Order") - 1; // -1 because order on server start with 1 , then 2 3 4...
-                        numberPlayer = dataObj.GetByte("NumberPlayer");
-                        sceneData.CreatePlayerPosition();
-                        sceneData.CreatePlayerCardPosition();
-                        SwapCardPosition(order);
-                        CreatePlayers(numberPlayer, order);
-                        currentPlayerIndex = dataObj.GetByte("GoFirstPlayer") - 1;
-                        //currentPlayerIndex = (Constants.MAX_NUMBER_PLAYER + currentPlayerIndex - order) % 4;
-                        currentPlayer = players[currentPlayerIndex];
-                        roundPlayer = players[currentPlayerIndex];
-                        isStarted = true;
-                    }
+                    //if(!isStarted)
+                    //{
+                    //    order = dataObj.GetByte("Order") - 1; // -1 because order on server start with 1 , then 2 3 4...
+                    //    numberPlayer = dataObj.GetByte("NumberPlayer");
+                    //    sceneData.CreatePlayerPosition();
+                    //    sceneData.CreatePlayerCardPosition();
+                    //    SwapCardPosition(order);
+                    //    CreatePlayers(numberPlayer, order);
+                    //    currentPlayerIndex = dataObj.GetByte("GoFirstPlayer") - 1;
+                    //    //currentPlayerIndex = (Constants.MAX_NUMBER_PLAYER + currentPlayerIndex - order) % 4;
+                    //    currentPlayer = players[currentPlayerIndex];
+                    //    roundPlayer = players[currentPlayerIndex];
+                    //    isStarted = true;
+                    //}
                     break;
                 }
             case "CountDown":
@@ -310,8 +298,7 @@ public class SFSGameRoom : MonoBehaviour
                         sceneData.CreatePlayerCardPosition();
                         SwapCardPosition(order);
                         CreatePlayers(numberPlayer, order);
-                        currentPlayerIndex = dataObj.GetByte("GoFirstPlayer") - 1;
-                        //currentPlayerIndex = (Constants.MAX_NUMBER_PLAYER + currentPlayerIndex - order) % 4;
+                        currentPlayerIndex = dataObj.GetByte("GoFirstPlayer");
                         currentPlayer = players[currentPlayerIndex];
                         roundPlayer = players[currentPlayerIndex];
                         isStarted = true;
@@ -370,37 +357,55 @@ public class SFSGameRoom : MonoBehaviour
                     // Auto Sort After put cards
                     this.SortWithoutBubble(this.players[this.Order].Deck.Cards, this.Order);
 
-                    //this.RoundPlayer = this.currentPlayer;
-                    //this.SetIdle(this.currentPlayer);
-                    //this.CheckWin(this.CurrentPlayer);
+                    ISFSObject tempWinParams = dataObj.GetSFSObject("winParams");
+                    if(tempWinParams!=null)
+                    {
+                        SetWinEffect(tempWinParams.GetByte("PlayerWin"), tempWinParams.GetByte("WinOrder"), tempWinParams.GetByte("PlayerLose"));
+                    }
+
                     this.RoundPlayer = this.players[tempPlayerIndex];
                     this.SetIdle(this.players[tempPlayerIndex]);
-                    if(putHand.CardCount() < 12)
-                    {
-                        this.CheckWin(this.players[tempPlayerIndex]);
-                    }
-                    for (int i = 0; i < Constants.MAX_NUMBER_PLAYER; i++ )
-                    {
-                        if(players[i].IsActive && players[i].IsHasSuperCut)
-                        {
-                            players[i].State = PlayerState.Idle;
-                        }
-                    }
-                    this.SetPlay();
+                    this.CurrentPlayer = players[dataObj.GetByte("CurrentPlayer")];
+                    this.CurrentPlayer.State = PlayerState.Play;
+
+                    //if(putHand.CardCount() < 12)
+                    //{
+                    //    this.CheckWin(this.players[tempPlayerIndex]);
+                    //}
+                    //for (int i = 0; i < Constants.MAX_NUMBER_PLAYER; i++ )
+                    //{
+                    //    if(players[i].IsActive && players[i].IsHasSuperCut)
+                    //    {
+                    //        players[i].State = PlayerState.Idle;
+                    //    }
+                    //}
+                    //this.SetPlay();
                     break;
                 }
             case "PlayerPass":
                 {
-                    int tempPlayerIndex = dataObj.GetByte("PlayerIndex");
+                    int tempPlayerIndex = dataObj.GetByte("PlayerIndex");                    
                     this.SetPass(this.players[tempPlayerIndex]);
-                    this.SetPlay();
+                    if(dataObj.GetByte("CurrentPlayer") != 10)
+                    {
+                        test = dataObj.GetByte("CurrentPlayer");
+                        this.CurrentPlayer = players[dataObj.GetByte("CurrentPlayer")];
+                        this.CurrentPlayer.State = PlayerState.Play;
+                    }
+                    else
+                    {
+                        this.CurrentHand = new Hand(new List<Card>());
+                        NewRound();
+                        this.CurrentPlayer = players[dataObj.GetByte("NewPlayer")];
+                        this.CurrentPlayer.State = PlayerState.Play;
+                    }
                     break;
                 }
             case "NewRound":
                 {
                     int tempPlayerIndex = dataObj.GetByte("PlayerIndex");
                     this.CurrentHand = new Hand(new List<Card>());
-                    this.NewRound(this.players[tempPlayerIndex], this);
+                    //this.NewRound(this.players[tempPlayerIndex], this);
                     break;
                 }
             case "Win":
@@ -567,17 +572,9 @@ public class SFSGameRoom : MonoBehaviour
 
         for(int i = 0 ; i < numberPlayer; i++)
         {
-            //int playerIndex = (Constants.MAX_NUMBER_PLAYER - order + i) % Constants.MAX_NUMBER_PLAYER;
-            //players[i].Name = order;
             players[i].IsActive = true;
         }
-        //for (int i = 0; i < Constants.MAX_NUMBER_PLAYER - numberPlayer; i++)
-        //{
-        //    AIPlayer aiPlayerInstance = Instantiate(aiPlayerPrefab, new Vector3(0, 0, 0), Quaternion.identity) as AIPlayer;
-        //    aiPlayerInstance.GameManager = gameManager;
-        //    aiPlayerInstance.Name = "Player" + (i + 2);
-        //    players.Add(aiPlayerInstance);
-        //}
+        
     }
 
     // Create 52 cards
@@ -626,16 +623,28 @@ public class SFSGameRoom : MonoBehaviour
     // Move cards to each player's position
     public void DealCards(List<Card> cards, int order)
     {
-        
+     
         for (int i = 0; i < Constants.CARD_AMOUNT; i++)
         {
-            //int temp =  (4 - order + i) % 4;
             int temp = i % 4;
             if(players[temp].IsActive)
             {
-                players[temp].Deck.Cards.Add(cards[i]);                
+                players[temp].Deck.Cards.Add(cards[i]);
             }
         }
+
+        string temptemp = "";
+        for (int i = 0; i < 13; i++)
+        {
+            temptemp = temptemp + " " + players[0].Deck.Cards[i].Index;
+        }
+        Debug.Log(temptemp);
+        temptemp = "";
+        for (int i = 0; i < 13; i++)
+        {
+            temptemp = temptemp + " " + players[1].Deck.Cards[i].Index;
+        }
+        Debug.Log(temptemp);
 
         for (int i = 0; i < numberPlayer; i++ )
         {
@@ -643,6 +652,8 @@ public class SFSGameRoom : MonoBehaviour
         }
         
         gameState = GameState.Play;
+        
+
     }
 
     public IEnumerator DealCards_Move(List<Card> cards, int playerIndex)
@@ -749,9 +760,8 @@ public class SFSGameRoom : MonoBehaviour
         return tempCardList;
     }
 
-    public void NewRound(Player player, SFSGameRoom gameManager)
+    public void NewRound()
     {
-        this.CurrentHand = new Hand(new List<Card>());
         for (int i = 0; i < players.Count; i++)
         {
             if (players[i].State != PlayerState.Win)
@@ -759,13 +769,42 @@ public class SFSGameRoom : MonoBehaviour
                 players[i].State = PlayerState.Idle;
             }
         }
-        player.State = PlayerState.Play;
-        gameManager.CurrentPlayer = player;
-        gameManager.RoundPlayer = player;
-
         for (int i = 0; i < cardOnTable.Count; i++)
         {
             cardOnTable[i].GetComponent<tk2dSprite>().SetSprite("CENT CARD Back");
+        }
+    }
+
+    public void SetWinEffect(int playerId, int winOrder, int lastPlayerId)
+    {
+        Effect tempEffect;
+        GameObject tempImg;
+        if (this.Order == playerId)
+        {
+            tempEffect = EffectManager.ShowEffect(((winOrder-1) * 2), sceneData.ScreenCenter, 1.0f);
+            effects.Add(tempEffect);
+        }
+        else
+        {
+            tempEffect = EffectManager.ShowEffect(((winOrder - 1) * 2) + 1, sceneData.PlayerPositions[playerId], 1.0f);
+            effects.Add(tempEffect);
+        }
+        tempImg = EffectManager.ShowImage(((winOrder - 1) * 2) + 1, sceneData.PlayerPositions[playerId]);
+        imgs.Add(tempImg);
+        if (lastPlayerId != 10)
+        {
+            if (lastPlayerId == this.Order)
+            {
+                tempEffect = EffectManager.ShowEffect(6, sceneData.ScreenCenter, 1.0f);
+                effects.Add(tempEffect);
+            }
+            else
+            {
+                tempEffect = EffectManager.ShowEffect(7, sceneData.PlayerPositions[lastPlayerId], 1.0f);
+                effects.Add(tempEffect);
+            }
+            tempImg = EffectManager.ShowImage(7, sceneData.PlayerPositions[lastPlayerId]);
+            imgs.Add(tempImg);
         }
     }
 
@@ -892,34 +931,6 @@ public class SFSGameRoom : MonoBehaviour
         player.State = PlayerState.Idle;
     }
 
-    //public void SetPlay()
-    //{
-    //    currentPlayerIndex = (currentPlayerIndex + 1) % players.Count;
-    //    currentPlayer = players[currentPlayerIndex];
-
-    //    if (roundPlayer.Name.Equals(currentPlayer.Name))
-    //    {
-    //        //NewRound(NextPlayer(), this);
-    //        if (currentPlayer.State == PlayerState.Win)
-    //        {
-    //            //SmartFoxConnection.SendNewRoundToServer(NextPlayer().GameManager.Order);
-    //            NewRound(NextPlayer(), this);
-    //        }
-    //        else
-    //        {
-    //            NewRound(currentPlayer, this);
-    //            //SmartFoxConnection.SendNewRoundToServer(currentPlayer.GameManager.Order);
-    //        }
-            
-    //        return;
-    //    }
-    //    if (currentPlayer.State == PlayerState.Pass || currentPlayer.State == PlayerState.Win || !currentPlayer.IsActive)
-    //    {
-    //         SetPlay();
-    //    }
-    //    currentPlayer.State = PlayerState.Play;
-    //}
-
     public void SetPlay()
     {
         int tempIndex = (currentPlayer.Name + 1) % Constants.MAX_NUMBER_PLAYER;
@@ -931,11 +942,11 @@ public class SFSGameRoom : MonoBehaviour
                 {
                     if (players[i].State == PlayerState.Win)
                     {
-                        NewRound(players[(tempIndex + 1) % Constants.MAX_NUMBER_PLAYER], this);
+                        //NewRound(players[(tempIndex + 1) % Constants.MAX_NUMBER_PLAYER], this);
                     }
                     else
                     {
-                        NewRound(players[tempIndex], this);
+                        //NewRound(players[tempIndex], this);
                     }
                     return;
                 }

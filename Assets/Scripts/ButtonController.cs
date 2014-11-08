@@ -20,14 +20,11 @@ public class ButtonController : MonoBehaviour {
     // Btn Deal Card Click
     void DealCard()
     {
-        //gameManager.GameState = GameState.Deal;
-        //StartCoroutine(gameManager.DealCards(gameManager.AllCards));
+        
     }
 
     void Sort()
     {
-        //gameManager.GameState = GameState.Sort;
-        //gameManager.Sort(gameManager.players[gameManager.Order].Deck.Cards, gameManager.Order);
         Hand hand = gameManager.players[gameManager.Order].QuickFindHand();
         for(int i = 0; i < hand.CardCount(); i++)
         {
@@ -37,12 +34,6 @@ public class ButtonController : MonoBehaviour {
 
     void SendHandToServer()
     {
-        //if ((gameManager.RoundPlayer.Name.Equals(gameManager.CurrentPlayer.Name)) && gameManager.CurrentHand != null)
-        //{
-        //    gameManager.CurrentHand = new Hand(new List<Card>());
-        //    gameManager.NewRound(gameManager.players[gameManager.Order], gameManager);
-        //    SmartFoxConnection.SendNewRoundMessage(gameManager.Order);
-        //}
         if (gameManager.players[gameManager.Order].State != PlayerState.Win)
         {
             Hand putHand = gameManager.players[gameManager.Order].GetMove();
@@ -76,7 +67,7 @@ public class ButtonController : MonoBehaviour {
         if(gameManager.RoundPlayer == gameManager.CurrentPlayer)
         { 
             gameManager.CurrentHand = new Hand(new List<Card>());
-            gameManager.NewRound(gameManager.CurrentPlayer, gameManager);            
+            //gameManager.NewRound(gameManager.CurrentPlayer, gameManager);            
         }
         //gameManager.PutCard(gameManager.FindCardOnHand());
         Hand putHand = gameManager.CurrentPlayer.GetMove();

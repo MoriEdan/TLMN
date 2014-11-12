@@ -113,6 +113,16 @@ public abstract class Player : MonoBehaviour
                         i--;
                     }
                 }
+                else if (gameManager.CurrentHand.Type == "SuperCut"
+                    || gameManager.CurrentHand.Type == "FourOfAKind"
+                    || (gameManager.CurrentHand.Type == "Pair" && gameManager.CurrentHand.Cards[0].Value.Equals("2")))
+                {
+                    if (!CanPlayForCut2(hands[i], gameManager.CurrentHand))
+                    {
+                        hands.Remove(hands[i]);
+                        i--;
+                    }
+                }
                 else
                 {
                     if (!CanPlay(hands[i], gameManager.CurrentHand))
@@ -144,7 +154,25 @@ public abstract class Player : MonoBehaviour
         {
             canPlay = true;
         }
-        if (hand.Type == "Cut" || hand.Type == "SuperCut" || hand.Type == "FourOfAKind" || (hand.Type == "Single" && hand.Cards[0].Value.Equals("2")))
+        else if (hand.Type == "Cut" || hand.Type == "SuperCut" || hand.Type == "FourOfAKind" || (hand.Type == "Single" && hand.Cards[0].Value.Equals("2")))
+            {
+                canPlay = hand.EvaluateHand() > currentHand.EvaluateHand();
+            }
+            else
+            {
+                canPlay = false;
+            }
+       return canPlay;
+    }
+
+    public bool CanPlayForCut2(Hand hand, Hand currentHand)
+    {
+        bool canPlay = false;
+        if (currentHand.IsEmpty() && !hand.IsEmpty())
+        {
+            canPlay = true;
+        }
+        else if (hand.Type == "SuperCut" || hand.Type == "FourOfAKind" || (hand.Type == "Pair" && hand.Cards[0].Value.Equals("2")))
         {
             canPlay = hand.EvaluateHand() > currentHand.EvaluateHand();
         }

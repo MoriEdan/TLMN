@@ -227,7 +227,7 @@ public class Hand{
         {
             tempHand.cards.Add(cards[i]);
         }
-        tempHand.Type = this.type;
+        tempHand.Type = this.Type;
         return tempHand;
     }
 

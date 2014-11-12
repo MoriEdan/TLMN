@@ -361,6 +361,19 @@ public class SFSGameRoom : MonoBehaviour
                     if(tempWinParams!=null)
                     {
                         SetWinEffect(tempWinParams.GetByte("PlayerWin"), tempWinParams.GetByte("WinOrder"), tempWinParams.GetByte("PlayerLose"));
+                        if(tempWinParams.GetByte("PlayerLose")!=10)
+                        {
+                            ISFSObject tempMoneyParams = tempWinParams.GetSFSObject("MoneyObject");
+                            for (int i = 0; i < players.Count; i++)
+                            {
+                                double value = tempMoneyParams.GetDouble((i + 1) + "");
+                                if (value != null && players[i].IsActive)
+                                {
+                                    players[i].GetComponent<HumanPlayer>().txtMoney.GetComponent<tk2dTextMesh>().text = value.ToString();
+                                }
+                            }
+                            StartCoroutine(WaitToResetGame(4.0f));
+                        }
                     }
 
                     this.RoundPlayer = this.players[tempPlayerIndex];
@@ -398,6 +411,19 @@ public class SFSGameRoom : MonoBehaviour
                         NewRound();
                         this.CurrentPlayer = players[dataObj.GetByte("NewPlayer")];
                         this.CurrentPlayer.State = PlayerState.Play;
+
+                        ISFSObject tempMoneyParams = dataObj.GetSFSObject("MoneyObject");
+                        if(tempMoneyParams!=null)
+                        {
+                            for (int i = 0; i < players.Count; i++)
+                            {
+                                double value = tempMoneyParams.GetDouble((i + 1) + "");
+                                if (value != null && players[i].IsActive)
+                                {
+                                    players[i].GetComponent<HumanPlayer>().txtMoney.GetComponent<tk2dTextMesh>().text = value.ToString();
+                                }
+                            }
+                        }
                     }
                     break;
                 }
@@ -437,6 +463,12 @@ public class SFSGameRoom : MonoBehaviour
                             players[i].GetComponent<HumanPlayer>().txtMoney.GetComponent<tk2dTextMesh>().text = value.ToString();
                         }
                     }
+                    break;
+                }
+            case "UpdateTimeToThink":
+                {
+                    int playerIndex = dataObj.GetByte("PlayerIndex");
+                    this.currentPlayer.GetComponent<HumanPlayer>().txtTime.GetComponent<tk2dTextMesh>().text = dataObj.GetByte("TimeToThink").ToString();
                     break;
                 }
             default:
@@ -897,7 +929,7 @@ public class SFSGameRoom : MonoBehaviour
         currentSortLayer = 1;
         currentPlaceToPutCard = 0;
         winPlayerNumber = 0;
-        SmartFoxConnection.SendRestartToServer(winPlayer);
+        SmartFoxConnection.SendRestartToServer();
     }
 
     public void SetPositionToStart()

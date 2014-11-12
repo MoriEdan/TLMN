@@ -248,9 +248,9 @@ public class Deck2 : MonoBehaviour {
         int last = -1;
         for (int i = 0; i < tempPairs.Count; i++ )
         {
-            if(tempPairs[i].Cards[0].NumberValue == last + 1 || last == -1)
+            if (tempPairs[i].Cards[0].NumberValue == last + 1 || last == -1)
             {
-                for(int j = 0 ;j <tempPairs[i].CardCount(); j++)
+                for (int j = 0; j < tempPairs[i].CardCount(); j++)
                 {
                     tempCuts.Add(tempPairs[i].Cards[j]);
                 }
@@ -259,38 +259,43 @@ public class Deck2 : MonoBehaviour {
             {
                 GetPossibleCutsHelper(cuts, tempCuts);
                 tempCuts = new List<Card>();
+                i--;
             }
             last = tempPairs[i].Cards[0].NumberValue;
         }
+        GetPossibleCutsHelper(cuts, tempCuts);
         return cuts;
     }
 
     public void GetPossibleCutsHelper(List<Hand> cuts, List<Card> tempCuts)
     {
         Hand tempHand;
-        for (int i = 0; i < tempCuts.Count; i += 2)
+        if(tempCuts.Count >= 6)
         {
-            tempHand = new Hand(new List<Card>());
-            for(int j = i ; j < tempCuts.Count; j +=2)
+            for (int i = 0; i < tempCuts.Count; i += 2)
             {
-                tempHand.Cards.Add(tempCuts[j]);
-                tempHand.Cards.Add(tempCuts[j+1]);
-                if(tempHand.CardCount() == 6)
+                tempHand = new Hand(new List<Card>());
+                for (int j = i; j < tempCuts.Count; j += 2)
                 {
-                    Hand h = tempHand.CloneHand();
-                    h.Type = "Cut";
-                    cuts.Add(h);
-                }
-                if(tempHand.CardCount() ==8)
-                {
-                    Hand h = tempHand.CloneHand();
-                    h.Type = "SuperCut";
-                    cuts.Add(h);
+                    tempHand.Cards.Add(tempCuts[j]);
+                    tempHand.Cards.Add(tempCuts[j + 1]);
+                    if (tempHand.CardCount() == 6)
+                    {
+                        Hand h = tempHand.CloneHand();
+                        h.Type = "Cut";
+                        cuts.Add(h);
+                    }
+                    if (tempHand.CardCount() == 8)
+                    {
+                        Hand h = tempHand.CloneHand();
+                        h.Type = "SuperCut";
+                        cuts.Add(h);
+                    }
                 }
             }
         }
-            
     }
+
     public List<Hand> AddAll(List<Hand> list, List<Hand> listToAdd)
     {
         for (int i = 0; i < listToAdd.Count; i++ )

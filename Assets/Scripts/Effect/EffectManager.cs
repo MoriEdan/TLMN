@@ -14,6 +14,12 @@ public class EffectManager : MonoBehaviour {
 
     public Effect superWin;
 
+    public Effect Two;
+    public Effect TwoPair;
+    public Effect Cut;
+    public Effect SuperCut;
+    public Effect FourOfAKind;
+
     public GameObject imgFirst;
     public GameObject imgSecond;
     public GameObject imgThird;
@@ -22,7 +28,6 @@ public class EffectManager : MonoBehaviour {
     public GameObject imgSecond1;
     public GameObject imgThird1;
     public GameObject imgFourth1;
-
 
     public static List<Effect> listEffect;
     public static List<GameObject> listImg;
@@ -38,6 +43,12 @@ public class EffectManager : MonoBehaviour {
         listEffect.Add(fourthBig);
         listEffect.Add(fourthSmall);
         listEffect.Add(superWin);
+
+        listEffect.Add(Two);
+        listEffect.Add(TwoPair);
+        listEffect.Add(Cut);
+        listEffect.Add(FourOfAKind);
+        listEffect.Add(SuperCut);
 
         listImg = new List<GameObject>();
         listImg.Add(imgFirst1);

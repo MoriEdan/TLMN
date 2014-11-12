@@ -113,6 +113,7 @@ public class SmartFoxConnection : MonoBehaviour
         }
         smartFox.Send(new ExtensionRequest(SFCommands.CMD_PLAYER_PUT_HAND, mParams));
     }
+    
 
     public static void SendPassToServer(int order)
     {
@@ -151,10 +152,9 @@ public class SmartFoxConnection : MonoBehaviour
         smartFox.Send(new ExtensionRequest(SFCommands.CMD_START, mParams));
     }
 
-    public static void SendRestartToServer(int winPlayerOrder)
+    public static void SendRestartToServer()
     {
         ISFSObject mParams = new SFSObject();
-        mParams.PutByte("WinPlayerOrder", (byte)winPlayerOrder);
         smartFox.Send(new ExtensionRequest(SFCommands.CMD_RESTART, mParams));
     }
 

@@ -53,12 +53,12 @@ public class Constants
     public const float AI_DELAY_TIME_TO_PUT_CARD = 1.0f;
 
     // Delay time for drag card
-    public const float DELAY_TIME_TO_DRAG_CARD = 0.3f;
+    public const float DELAY_TIME_TO_DRAG_CARD = 0.4f;
 
     // Time countdown for start playing
     public const int COUNT_DOWN_TIME_FOR_STARTING = 5;
 
     // Time countdown per turn
-    public const float COUNT_DOWN_TIME_PER_TURN = 15.0f;
+    public const float COUNT_DOWN_TIME_PER_TURN = 16.0f;
 
 }

@@ -20,17 +20,18 @@ public class AutoRotate : MonoBehaviour {
 	void Update () {
         if(isRotate)
         {
-            if (time <= 0f)
-            {
-                time = Constants.COUNT_DOWN_TIME_PER_TURN;
-                //SmartFoxConnection.SendPassToServer(SFSGameRoom.order);
-            }
-            else
-            {
-                transform.Rotate(Vector3.back * (rotationSpeed * Time.deltaTime));
-                time = time - Time.deltaTime;
-            }
-            //txtTime.text = Mathf.RoundToInt(time).ToString();
+            transform.Rotate(Vector3.back * (rotationSpeed * Time.deltaTime));
+            //if (time <= 0f)
+            //{
+            //    time = Constants.COUNT_DOWN_TIME_PER_TURN;
+            //    //SmartFoxConnection.SendPassToServer(SFSGameRoom.order);
+            //}
+            //else
+            //{
+            //    transform.Rotate(Vector3.back * (rotationSpeed * Time.deltaTime));
+            //    time = time - Time.deltaTime;
+            //}
+            ////txtTime.text = Mathf.RoundToInt(time).ToString();
         }
 	}
     public bool IsRotate

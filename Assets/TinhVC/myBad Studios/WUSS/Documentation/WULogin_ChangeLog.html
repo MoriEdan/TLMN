@@ -1,0 +1,26 @@
+v1.22
+- Modified the method for fetching your gravatar image. You can use it as always or you can now pass in the type of image of
+gravatar you want to show. Simply use the new WULGravatarTypes enum as the second param.
+- Updated the WULProfileImage script so you can select your gravatar type from the inspector
+- Added the WUServer_Instance property to WUServer in preparation for dependent kit updates
+
+v1.21
+- Modified the WUCookie script to remove the deprecated warning introduced in Unity 4.5 and thus made it more future proof
+
+v1.2
+- Added multisite installation support
+- Added wulogin_pre and wulogin_post hooks for custom plugins
+- Moved execution from immediately to Wordpress's 'shutdown' filter for improved compatability with 3rd party plugins on your website
+NOTE: This update will break a previous install if installed on a multisite
+
+v1.11
+- Fixed a security issue introduced in v1.1
+- Modified this file so the upload would work...
+
+v1.1
+- Now includes a new class WULProfileImg. 
+- After login, player's preofile image will be available from static WULProfileImg.ProfileImage
+- Updated the Wordpress plugin to fix a strange bug that occurs in the WUData package
+
+v1.0
+- Initial release

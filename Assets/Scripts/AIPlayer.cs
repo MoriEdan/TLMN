@@ -36,14 +36,14 @@ public class AIPlayer : Player {
                             PutCard(hand);
                             GameManager.RoundPlayer = GameManager.CurrentPlayer;
                             GameManager.SetIdle(GameManager.CurrentPlayer);
-                            GameManager.CheckWin(GameManager.CurrentPlayer);
+                            //GameManager.CheckWin(GameManager.CurrentPlayer);
                         }
                         else
                         {
                             GameManager.SetPass(GameManager.CurrentPlayer);
                         }
                         putCardTimer = Constants.AI_DELAY_TIME_TO_PUT_CARD;
-                        GameManager.SetPlay();    
+                        //GameManager.SetPlay();    
                     }
                     else
                     {

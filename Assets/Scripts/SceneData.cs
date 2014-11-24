@@ -7,9 +7,11 @@ public class SceneData : MonoBehaviour {
     private Vector3[][] playerCardPosition;
   
     private Vector3[] putCardPosition;
-    private Vector3 screenCenter;
 
-    
+    private Vector3 currentCardPosition;
+    private Vector3 previousCardPosition;
+
+    private Vector3 screenCenter;
 
     private float scaleW;
     private float scaleH;
@@ -33,7 +35,6 @@ public class SceneData : MonoBehaviour {
         scaleH = (float)Screen.height / 720;
 
         
-
         // Create 13 position
         CreatePlayerCardPosition();
 
@@ -41,6 +42,9 @@ public class SceneData : MonoBehaviour {
         
         screenCenter = tk2DCmr.camera.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, 5));
         CreatePutCardPosition();
+
+        currentCardPosition = tk2DCmr.camera.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2 + (50 * scaleH), 5));
+        previousCardPosition = tk2DCmr.camera.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2 + (120 * scaleH), 5));
 
         // Add humanplayer Prefabs to list
         humanPlayerPrefabs = new List<HumanPlayer>();
@@ -56,7 +60,7 @@ public class SceneData : MonoBehaviour {
     public void CreatePlayerPosition()
     {
         playerPositions.Clear();
-        playerPositions.Add(tk2DCmr.camera.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 4, 5)));
+        playerPositions.Add(tk2DCmr.camera.ScreenToWorldPoint(new Vector3(Screen.width / 2, 220 * scaleH, 5)));
         playerPositions.Add(tk2DCmr.camera.ScreenToWorldPoint(new Vector3(Screen.width - (100 * scaleW), Screen.height / 2, 5)));
         playerPositions.Add(tk2DCmr.camera.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height - (100 * scaleH), 5)));
         playerPositions.Add(tk2DCmr.camera.ScreenToWorldPoint(new Vector3((100 * scaleW), Screen.height / 2, 5)));
@@ -71,7 +75,7 @@ public class SceneData : MonoBehaviour {
         }
         for (int i = 0; i < Constants.CARD_AMOUNT_FOR_EACH_PLAYER; i++)
         {
-            playerCardPosition[0][i] = tk2DCmr.camera.ScreenToWorldPoint(new Vector3(200 * scaleW, 100 * scaleH, 5))
+            playerCardPosition[0][i] = tk2DCmr.camera.ScreenToWorldPoint(new Vector3(250 * scaleW, 130 * scaleH, 5))
                 + new Vector3(i * Constants.CARD_MARGIN_HORIZONTAL, 0, 0);
             playerCardPosition[1][i] = tk2DCmr.camera.ScreenToWorldPoint(new Vector3(Screen.width - 100 * scaleW, 100 * scaleH, 5))
                 + new Vector3(0, i * Constants.CARD_MARGIN_VERTICAL, 0);
@@ -79,6 +83,7 @@ public class SceneData : MonoBehaviour {
                 - new Vector3(i * Constants.CARD_MARGIN_HORIZONTAL, 0, 0);
             playerCardPosition[3][i] = tk2DCmr.camera.ScreenToWorldPoint(new Vector3(100 * scaleW, Screen.height - 100 * scaleH, 5))
                 - new Vector3(0, i * Constants.CARD_MARGIN_VERTICAL, 0);
+            
         }
     }
 
@@ -133,5 +138,16 @@ public class SceneData : MonoBehaviour {
     {
         get { return screenCenter; }
         set { screenCenter = value; }
+    }
+    public Vector3 PreviousCardPosition
+    {
+        get { return previousCardPosition; }
+        set { previousCardPosition = value; }
+    }
+
+    public Vector3 CurrentCardPosition
+    {
+        get { return currentCardPosition; }
+        set { currentCardPosition = value; }
     }
 }

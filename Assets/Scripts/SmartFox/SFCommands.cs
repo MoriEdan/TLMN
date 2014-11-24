@@ -5,7 +5,7 @@ using System.Collections;
 /// list of command help user communicate with server
 /// NOTE: this is our convention
 /// </summary>
-public class SFCommands {
+public class SFCommands1 {
 
     /// <summary>
     /// notify to server that user has ready to play, also ask SmartFox server find another player to play game
@@ -17,26 +17,6 @@ public class SFCommands {
     /// </summary>
     public const string CMD_MOVE = "move";
 
-    // When user control their character
-    public const string CMD_CHAR_MOVE = "charMove";
-
-    // When elephant's symbol change
-    public const string CMD_SYMBOL_CHANGE = "symbolChange";
-
-    // When coconut leaf change
-    public const string CMD_LEAF_CHANGE = "leafChange";
-
-    // When user spawn a elephant
-    public const string CMD_SPAWN_NORMAL = "spawnNormal";
-    public const string CMD_SPAWN_COCONUT = "spawnCoconut";
-
-    // when host spawn a bird
-    public const string CMD_SPAWN_BIRD = "spawnBird";
-
-    // when random drop an item
-    public const string CMD_DROP_ITEM = "dropItem";
-
-
     //----------------------------------------//
     // player click QUICK GAME
     public const string CMD_REQUEST_QUICK_GAME = "RequestQuickGame";
@@ -46,6 +26,9 @@ public class SFCommands {
 
     // Any player put a hand
     public const string CMD_PLAYER_PUT_HAND = "PlayerPutHand";
+
+    // Any player Super Win
+    public const string CMD_SEND_SUPER_WIN = "SendSuperWin";
 
     // Any player pass round
     public const string CMD_PLAYER_PASS = "PlayerPass";
@@ -61,4 +44,7 @@ public class SFCommands {
 
     // Restart
     public const string CMD_RESTART = "Restart";
+
+    // List Friend Request
+    public const string CMD_GET_LIST_FRIEND = "GetListFriend";
 }

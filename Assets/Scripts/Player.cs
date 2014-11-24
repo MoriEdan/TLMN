@@ -19,6 +19,11 @@ public abstract class Player : MonoBehaviour
 
     private bool isHasSuperCut;
 
+    private bool isNewRoundPlayer;
+
+    private string userName;
+
+    
 
     // Use this for initialization
     void Awake()
@@ -44,19 +49,49 @@ public abstract class Player : MonoBehaviour
     {
         GameManager.CurrentPlaceToPutCard++;
         int placeToPut = GameManager.CurrentPlaceToPutCard % Constants.NUMBER_POSITION_TO_PUT_CARD;
+
+        for (int i = 0; i < gameManager.PreviousCards.Count; i++)
+        {
+            if (gameManager.PreviousCards[i] != null)
+            {
+                gameManager.PreviousCards[i].gameObject.SetActive(false);
+            }
+        }
+        gameManager.PreviousCards.Clear();
+        int tempCount1 = gameManager.CurrentCards.Count;
+        for (int i = 0; i < tempCount1; i++)
+        {
+            if (gameManager.CurrentCards[i] != null)
+            {
+                gameManager.CurrentCards[i].Move(gameManager.sceneData.PreviousCardPosition.x + (i - tempCount1/2) * 0.35f,
+                    gameManager.sceneData.PreviousCardPosition.y, 0.1f);
+                gameManager.CurrentCards[i].transform.localScale = new Vector3(0.35f, 0.35f, 0);
+                gameManager.PreviousCards.Add(gameManager.CurrentCards[i]);
+            }
+        }
+        gameManager.CurrentCards.Clear();
+        int tempCount2 = hand.CardCount();
         for (int i = 0; i < hand.CardCount(); i++)
         {
             if (hand.Cards[i] != null)
             {
                 hand.Cards[i].gameObject.SetActive(true);
-                hand.Cards[i].Move(gameManager.sceneData.PutCardPosition[placeToPut].x + i * 0.5f,
-                    gameManager.sceneData.PutCardPosition[placeToPut].y, 0.1f);
+                //hand.Cards[i].Move(gameManager.sceneData.PutCardPosition[placeToPut].x + i * 0.5f,
+                //    gameManager.sceneData.PutCardPosition[placeToPut].y, 0.1f);
+                hand.Cards[i].Move(gameManager.sceneData.CurrentCardPosition.x + (i - tempCount2 / 2) * 0.5f,
+                    gameManager.sceneData.CurrentCardPosition.y, 0.1f);
+                hand.Cards[i].transform.localScale = new Vector3(0.5f, 0.5f, 0);
                 hand.Cards[i].renderer.sortingOrder = gameManager.CurrentSortLayer++;
                 gameManager.CurrentHand = hand.CloneHand();
                 this.Deck.Cards.Remove(hand.Cards[i]);
+                gameManager.CurrentCards.Add(hand.Cards[i]);
                 gameManager.CardOnTable.Add(hand.Cards[i]);
             }
         }
+    }
+    public void SpreadCard()
+    {
+
     }
 
     public bool IsHandContainsOther(List<Hand> listHand, Hand hand)
@@ -113,9 +148,7 @@ public abstract class Player : MonoBehaviour
                         i--;
                     }
                 }
-                else if (gameManager.CurrentHand.Type == "SuperCut"
-                    || gameManager.CurrentHand.Type == "FourOfAKind"
-                    || (gameManager.CurrentHand.Type == "Pair" && gameManager.CurrentHand.Cards[0].Value.Equals("2")))
+                else if (gameManager.CurrentHand.Type == "Pair" && gameManager.CurrentHand.Cards[0].Value.Equals("2"))
                 {
                     if (!CanPlayForCut2(hands[i], gameManager.CurrentHand))
                     {
@@ -183,17 +216,50 @@ public abstract class Player : MonoBehaviour
         return canPlay;
     }
 
-    public bool CheckSuperWin()
+    public bool CheckSuperWinHelper(List<Hand> hands)
     {
-        int pairNumber = 0;
         bool isSuper = false;
-        List<Hand> hands = LegalMoves();
+        return isSuper;
+        List<Hand>[] handByValues = new List<Hand>[16];
+        int pairNumber = 0;
+        for (int i = 0; i < 16; i++ )
+        {
+            handByValues[i] = new List<Hand>();
+        }
+
         for (int i = 0; i < hands.Count; i++)
         {
             if (hands[i].Type.Equals("Pair"))
             {
+                handByValues[hands[i].Cards[0].NumberValue].Add(hands[i]);
+            }
+        }
+   
+        for(int i = 0; i < handByValues.Length; i++)
+        {
+            if((handByValues[i].Count == 1) || (handByValues[i].Count == 3))
+            {
                 pairNumber++;
             }
+            if(handByValues[i].Count == 6)
+            {
+                pairNumber += 2;
+            }
+        }
+
+        if(pairNumber == 6)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public bool CheckSuperWin()
+    {
+        bool isSuper = false;
+        List<Hand> hands = LegalMoves();
+        for (int i = 0; i < hands.Count; i++)
+        {
             if (hands[i].Type.Equals("Straight12"))
             {
                 isSuper = true;
@@ -203,7 +269,7 @@ public abstract class Player : MonoBehaviour
                 isSuper = true;
             }
         }
-        if (pairNumber == 6)
+        if(CheckSuperWinHelper(hands))
         {
             isSuper = true;
         }
@@ -228,7 +294,11 @@ public abstract class Player : MonoBehaviour
         if (GameManager.CurrentPlayer.Name.Equals(this.Name))
         {
             List<Hand> hands = LegalMoves();
-            Hand selectedHand = hands[0];
+            Hand selectedHand = null;
+            if(hands.Count > 0)
+            {
+                selectedHand = hands[0];
+            }
             if(selectedHand != null)
             {
                 return selectedHand;
@@ -271,5 +341,16 @@ public abstract class Player : MonoBehaviour
     {
         get { return isHasSuperCut; }
         set { isHasSuperCut = value; }
+    }
+
+    public bool IsNewRoundPlayer
+    {
+        get { return isNewRoundPlayer; }
+        set { isNewRoundPlayer = value; }
+    }
+    public string UserName
+    {
+        get { return userName; }
+        set { userName = value; }
     }
 }

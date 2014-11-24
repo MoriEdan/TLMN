@@ -254,14 +254,15 @@ public class Deck2 : MonoBehaviour {
                 {
                     tempCuts.Add(tempPairs[i].Cards[j]);
                 }
+                last = tempPairs[i].Cards[0].NumberValue;
             }
             else
             {
                 GetPossibleCutsHelper(cuts, tempCuts);
                 tempCuts = new List<Card>();
                 i--;
+                last = -1;
             }
-            last = tempPairs[i].Cards[0].NumberValue;
         }
         GetPossibleCutsHelper(cuts, tempCuts);
         return cuts;

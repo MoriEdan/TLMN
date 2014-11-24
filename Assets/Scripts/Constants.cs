@@ -29,7 +29,7 @@ public class Constants
     public const float TIME_TO_DEAL_ONE_CARD = 0.3f;
 
     // Card margin horizontal;
-    public const float CARD_MARGIN_HORIZONTAL = 1.0f;
+    public const float CARD_MARGIN_HORIZONTAL = 0.7f;
 
     // Card margin vertical;
     public const float CARD_MARGIN_VERTICAL = 0.5f;
@@ -60,5 +60,14 @@ public class Constants
 
     // Time countdown per turn
     public const float COUNT_DOWN_TIME_PER_TURN = 16.0f;
+
+    // TIme show notice
+    public const float NOTICE_TIME = 2.0f;
+
+    // String for notice new Player
+    public const string TXT_NEW_PLAYER = "vừa vào phòng.";
+
+    // String for notice leave room player
+    public const string TXT_LEAVE_ROOM_PLAYER = "vừa rời phòng.";
 
 }

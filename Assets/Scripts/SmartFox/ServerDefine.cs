@@ -6,7 +6,7 @@ using System.IO;
 using Sfs2X.Logging;
 //using ANMiniJSON;
 
-public class ServerDefine : MonoBehaviour
+public class ServerDefine1 : MonoBehaviour
 {
 
     /// <summary>

@@ -12,7 +12,7 @@ using Sfs2X.Util;
 // Statics for holding the connection to the SFS server end
 // Can then be queried from the entire game to get the connection
 
-public class SmartFoxConnection : MonoBehaviour
+public class SmartFoxConnection1 : MonoBehaviour
 {
 
     private static SmartFoxConnection mInstance;
@@ -93,7 +93,7 @@ public class SmartFoxConnection : MonoBehaviour
 
 
     // When a player put CARD!!!!!!
-    public static void SendHandToServer(Hand hand, int order)
+    public static void SendHandToServer(Hand hand, int order, bool isSuperWin)
     {
         ISFSObject mParams = new SFSObject();
         byte[] bArray = new byte[hand.CardCount()];
@@ -111,7 +111,15 @@ public class SmartFoxConnection : MonoBehaviour
                 mParams.PutByte("Type", (byte)i);
             }
         }
-        smartFox.Send(new ExtensionRequest(SFCommands.CMD_PLAYER_PUT_HAND, mParams));
+        if(!isSuperWin)
+        {
+            smartFox.Send(new ExtensionRequest(SFCommands.CMD_PLAYER_PUT_HAND, mParams));
+        }
+        else
+        {
+            smartFox.Send(new ExtensionRequest(SFCommands.CMD_SEND_SUPER_WIN, mParams));
+        }
+        
     }
     
 
@@ -156,6 +164,12 @@ public class SmartFoxConnection : MonoBehaviour
     {
         ISFSObject mParams = new SFSObject();
         smartFox.Send(new ExtensionRequest(SFCommands.CMD_RESTART, mParams));
+    }
+
+    public static void SendGetFriendListRequest()
+    {
+        ISFSObject mParams = new SFSObject();
+        smartFox.Send(new ExtensionRequest(SFCommands.CMD_GET_LIST_FRIEND, mParams));
     }
 
     // Handle disconnection automagically

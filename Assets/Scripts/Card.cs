@@ -77,7 +77,6 @@ public class Card : MonoBehaviour {
 
     void OnMouseUp()
     {
-
         MouseUpHandler();
     }
 

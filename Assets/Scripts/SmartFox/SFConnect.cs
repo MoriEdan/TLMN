@@ -40,9 +40,7 @@ public class SFConnect : MonoBehaviour {
     void Start()
     {
         sfStatus = GameObject.Find("TxtConnectStatus") as GameObject;
-        sfStatus.GetComponent<tk2dTextMesh>().text = "Connecting...";
-
-
+        sfStatus.GetComponent<tk2dTextMesh>().text = "";
     }
 
     // Update is called once per frame
@@ -59,7 +57,9 @@ public class SFConnect : MonoBehaviour {
     void OnMouseUp() {
         //text.GetComponent<SpriteRenderer>().sprite = connecting;
         sfStatus.GetComponent<tk2dTextMesh>().text = "connecting";
+        //InvokeRepeating("Connect", 1, 5);
         InvokeRepeating("Connect", 1, 5);
+        
     }
 
     void CreateConnectObject()
@@ -162,7 +162,7 @@ public class SFConnect : MonoBehaviour {
     void OnConnectionLost(Sfs2X.Core.BaseEvent evt)
     {
         sfState = SmartFoxState.Disconnected;
-        InvokeRepeating("Connect", 1, 5);
+        //InvokeRepeating("Connect", 1, 5);
     }
 
     void OnLogin(Sfs2X.Core.BaseEvent evt)
@@ -229,6 +229,7 @@ public class SFConnect : MonoBehaviour {
 
     void OnDestroy()
     {
+        CancelInvoke();
         UnregisterSFSSceneCallbacks();
     }
 

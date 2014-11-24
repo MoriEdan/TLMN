@@ -19,6 +19,9 @@ public class SFSGameRoom : MonoBehaviour
     public AIPlayer aiPlayerPrefab;
     public Card cardPrefab;
     public List<Player> players;
+    public List<int> playerIdInGame;
+
+    public tk2dUIItem btnSuperWin;
 
     private int numberPlayer;
     private GameState gameState;
@@ -45,6 +48,7 @@ public class SFSGameRoom : MonoBehaviour
     // Define variables for smarfoxserver
     // SMARTFOX COMPONENT
     private SmartFox sfConnectObj;
+
     private SFSObject receivedData;
     // Text in game
     private GameObject sfStatus;
@@ -65,6 +69,17 @@ public class SFSGameRoom : MonoBehaviour
     // Effect
     private List<Effect> effects;
     private List<GameObject> imgs;
+
+    //NOtice
+    public tk2dTextMesh txtNotice;
+
+    // User Info
+    public GameObject userInfo;
+
+    // CHange put card position Place;
+    private List<Card> previousCards;
+    private List<Card> currentCards;
+
     
 
     // Test 
@@ -99,7 +114,7 @@ public class SFSGameRoom : MonoBehaviour
         gameState = GameState.Idle;
         numberPlayer = 1;
         players = new List<Player>();
-
+        playerIdInGame = new List<int>();
         // Disable this for playing online :D :D
         //CreatePlayers(numberPlayer);
         currentPlayerIndex = 0;
@@ -108,6 +123,8 @@ public class SFSGameRoom : MonoBehaviour
 
         // Create cards and shuffle them
         CreateAllCards();
+        previousCards = new List<Card>();
+        currentCards = new List<Card>();
 
         // Disable this for playing online :D :D
         //this.allCards = Shuffle(this.allCards);
@@ -146,6 +163,11 @@ public class SFSGameRoom : MonoBehaviour
         // Effect
         effects = new List<Effect>();
         imgs = new List<GameObject>();
+
+        btnSuperWin.gameObject.SetActive(false);
+
+        GetUserInfoMoney();
+        GetUserInfoXP();
     }
    
     // Update is called once per frame
@@ -277,6 +299,37 @@ public class SFSGameRoom : MonoBehaviour
                     sfStatus.SetActive(true);
                     sfStatus.GetComponent<tk2dTextMesh>().text = "Chuẩn bị vào trận đấu";
                     sfStatusNumber.SetActive(true);
+                    order = dataObj.GetByte("Order"); // -1 because order on server start with 1 , then 2 3 4...
+                    numberPlayer = dataObj.GetByte("NumberPlayer");
+                    sceneData.CreatePlayerPosition();
+                    sceneData.CreatePlayerCardPosition();
+                    VariableApplication.tlmnIdUser[0] = dataObj.GetUtfString("UserName0");
+                    VariableApplication.tlmnIdUser[1] = dataObj.GetUtfString("UserName1");
+                    VariableApplication.tlmnIdUser[2] = dataObj.GetUtfString("UserName2");
+                    VariableApplication.tlmnIdUser[3] = dataObj.GetUtfString("UserName3");
+
+                    SwapCardPosition(order);
+                    int[] tempListPlayer = new int[4];
+                    tempListPlayer = dataObj.GetIntArray("ListPlayer");
+                    for (int i = 0; i < players.Count; i++)
+                    {
+                        if(players[i]!=null)
+                        {
+                            if (players[i].gameObject != null)
+                            {
+                                Destroy(players[i].gameObject);
+                            }
+                        }
+                    }
+                    players.Clear();
+                    playerIdInGame.Clear();
+                    for (int i = 0; i < tempListPlayer.Length; i++ )
+                    {
+                        CreatePlayer(i, dataObj.GetUtfString("UserName"+i));
+                        playerIdInGame.Add(tempListPlayer[i]);
+                    }
+                    SetNotice("[" + dataObj.GetUtfString("JoinUserName") + "] " + Constants.TXT_NEW_PLAYER);
+
                     break;
                 }
             case "UpdateTime":
@@ -292,12 +345,10 @@ public class SFSGameRoom : MonoBehaviour
 
                     if (!isStarted)
                     {
-                        order = dataObj.GetByte("Order") - 1; // -1 because order on server start with 1 , then 2 3 4...
-                        numberPlayer = dataObj.GetByte("NumberPlayer");
-                        sceneData.CreatePlayerPosition();
-                        sceneData.CreatePlayerCardPosition();
-                        SwapCardPosition(order);
-                        CreatePlayers(numberPlayer, order);
+                        //sceneData.CreatePlayerPosition();
+                        //sceneData.CreatePlayerCardPosition();
+                        //SwapCardPosition(order);
+                        //CreatePlayers(numberPlayer, order);
                         currentPlayerIndex = dataObj.GetByte("GoFirstPlayer");
                         currentPlayer = players[currentPlayerIndex];
                         roundPlayer = players[currentPlayerIndex];
@@ -319,28 +370,10 @@ public class SFSGameRoom : MonoBehaviour
                     }
                     currentPlayer.State = PlayerState.Play;
 
-                    //for (int i = 0; i < numberPlayer; i++)
-                    //{
-                    //    if(players[i].CheckSuperWin())
-                    //    {
-                    //        if (players[i].Name == this.Order)
-                    //        {
-                    //            Effect tempEffect = EffectManager.ShowEffect(8, sceneData.ScreenCenter, 1.0f);
-                    //            effects.Add(tempEffect);
-                    //            SmartFoxConnection.SendHandToServer(new Hand(players[i].Deck.Cards), Order);
-                    //        }
-                    //        else
-                    //        {
-                    //            Effect tempEffect = EffectManager.ShowEffect(8, sceneData.PlayerPositions[players[i].Name], 1.0f);
-                    //            effects.Add(tempEffect);
-                    //        }
-                    //        winPlayer = players[i].Name;
-                    //        //StartCoroutine(WaitToResetGame(10.0f));
-                    //    }
-                    //}
-                    //SmartFoxConnection.SendWinToServer(1, 1);
-
-
+                    if(players[order].CheckSuperWin())
+                    {
+                        btnSuperWin.gameObject.SetActive(true);
+                    }
 
                     break;
                 }
@@ -353,14 +386,24 @@ public class SFSGameRoom : MonoBehaviour
                     int tempPlayerIndex = dataObj.GetByte("PlayerIndex");
                     Hand putHand = new Hand(ByteArrayToCards_Player(byteArray, players[tempPlayerIndex]));
                     putHand.Type = Constants.HAND_TYPE[dataObj.GetByte("Type")];
-                    players[dataObj.GetByte("PlayerIndex")].PutCard(putHand);
+                    players[tempPlayerIndex].PutCard(putHand);
+                    players[tempPlayerIndex].IsNewRoundPlayer = false;
+                    // SuperWin
+                    if(this.Order == tempPlayerIndex)
+                    {
+                        this.btnSuperWin.gameObject.SetActive(false);
+                    }
+
                     // Auto Sort After put cards
                     this.SortWithoutBubble(this.players[this.Order].Deck.Cards, this.Order);
 
                     ISFSObject tempWinParams = dataObj.GetSFSObject("winParams");
                     if(tempWinParams!=null)
                     {
-                        SetWinEffect(tempWinParams.GetByte("PlayerWin"), tempWinParams.GetByte("WinOrder"), tempWinParams.GetByte("PlayerLose"));
+                        SetWinEffect(tempWinParams.GetByte("PlayerWin"), 
+                            tempWinParams.GetByte("WinOrder"), 
+                            tempWinParams.GetByte("PlayerLose"),
+                            tempWinParams.GetByte("LeftPlayerNumber"));
                         if(tempWinParams.GetByte("PlayerLose")!=10)
                         {
                             ISFSObject tempMoneyParams = tempWinParams.GetSFSObject("MoneyObject");
@@ -411,7 +454,7 @@ public class SFSGameRoom : MonoBehaviour
                         NewRound();
                         this.CurrentPlayer = players[dataObj.GetByte("NewPlayer")];
                         this.CurrentPlayer.State = PlayerState.Play;
-
+                        this.CurrentPlayer.IsNewRoundPlayer = true;
                         ISFSObject tempMoneyParams = dataObj.GetSFSObject("MoneyObject");
                         if(tempMoneyParams!=null)
                         {
@@ -443,14 +486,34 @@ public class SFSGameRoom : MonoBehaviour
                 }
             case "UserLeft":
                 {
-                    int tempPlayerIndex = dataObj.GetByte("LeftUserOrder") - 1;
-                    for (int i = 0; i < players.Count; i++ )
+                    int tempPlayerIndex = dataObj.GetByte("LeftUserOrder");
+                    int tempIsStarted = dataObj.GetByte("IsStarted");
+                    for (int i = 0; i < players.Count; i++)
                     {
-                        if(players[i].Name == tempPlayerIndex)
+                        if (players[i].Name == tempPlayerIndex)
                         {
-                            players[i].IsActive = false;
+                            if (tempIsStarted == 0)
+                            {
+                                Destroy(players[i].gameObject);
+                                players.RemoveAt(i);
+                                numberPlayer--;
+                                if(order > tempPlayerIndex)
+                                {
+                                    order--;
+                                    sceneData.CreatePlayerPosition();
+                                    sceneData.CreatePlayerCardPosition();
+                                    SwapCardPosition(order);
+                                }
+                            }
+                            else
+                            {
+                                players[i].IsActive = false;
+                            }
                         }
                     }
+
+                    SetNotice("[" + dataObj.GetUtfString("LeaveUserName") + "] " + Constants.TXT_LEAVE_ROOM_PLAYER);
+                    
                     break;
                 }
             case "GetMoneyAllPlayer":
@@ -468,7 +531,73 @@ public class SFSGameRoom : MonoBehaviour
             case "UpdateTimeToThink":
                 {
                     int playerIndex = dataObj.GetByte("PlayerIndex");
-                    this.currentPlayer.GetComponent<HumanPlayer>().txtTime.GetComponent<tk2dTextMesh>().text = dataObj.GetByte("TimeToThink").ToString();
+                    int timeToThink = dataObj.GetByte("TimeToThink");
+                    this.currentPlayer.GetComponent<HumanPlayer>().txtTime.GetComponent<tk2dTextMesh>().text = timeToThink.ToString();
+                    float temp = timeToThink * (360 / Constants.COUNT_DOWN_TIME_PER_TURN);
+                    this.currentPlayer.GetComponent<HumanPlayer>().imgGlowCircle.transform.rotation = Quaternion.Euler(new Vector3(0,0,temp));
+                    break;
+                }
+            case "AutoPutCard":
+                {
+                    int playerIndex = dataObj.GetByte("PlayerIndex");
+                    if(playerIndex == this.Order)
+                    {
+                        if (this.players[playerIndex].State != PlayerState.Win)
+                        {
+                            Hand putHand = this.players[playerIndex].QuickFindHand();
+                            if (putHand != null)
+                            {
+                                SmartFoxConnection.SendHandToServer(putHand, this.Order, false);
+                            }
+                        }
+                    }
+                    break;
+                }
+            case "SendSuperWin":
+                {
+                    byte[] bArray = new byte[13];
+                    ByteArray byteArray = new ByteArray(bArray);
+                    byteArray = dataObj.GetByteArray("Hand");
+                    //int tempPlayerIndex = (Constants.MAX_NUMBER_PLAYER - order + dataObj.GetByte("PlayerIndex")) % Constants.MAX_NUMBER_PLAYER;
+                    int tempPlayerIndex = dataObj.GetByte("PlayerIndex");
+                    Hand putHand = new Hand(ByteArrayToCards_Player(byteArray, players[tempPlayerIndex]));
+                    putHand.Type = Constants.HAND_TYPE[dataObj.GetByte("Type")];
+                    players[tempPlayerIndex].PutCard(putHand);
+
+                    ISFSObject tempMoneyParams = dataObj.GetSFSObject("MoneyObject");
+                    if (tempMoneyParams != null)
+                    {
+                        for (int i = 0; i < players.Count; i++)
+                        {
+                            double value = tempMoneyParams.GetDouble((i + 1) + "");
+                            if (value != null && players[i].IsActive)
+                            {
+                                players[i].GetComponent<HumanPlayer>().txtMoney.GetComponent<tk2dTextMesh>().text = value.ToString();
+                            }
+                        }
+                    }
+
+                    // Effect
+                    Effect tempEffect;
+                    if (this.Order == tempPlayerIndex)
+                    {
+                        tempEffect = EffectManager.ShowEffect(8, sceneData.ScreenCenter, 1.0f);
+                        effects.Add(tempEffect);
+                    }
+                    else
+                    {
+                        tempEffect = EffectManager.ShowEffect(6, sceneData.PlayerPositions[this.Order], 1.0f);
+                        effects.Add(tempEffect);
+                    }
+                    StartCoroutine(WaitToResetGame(4.0f));
+                    break;
+                }
+            case "NotEnoughPlayer":
+                {
+                    ResetGame(false);
+                    sfStatus.SetActive(false);
+                    sfStatusNumber.SetActive(false);
+                    SetNotice("[" + dataObj.GetUtfString("LeaveUserName") + "] " + Constants.TXT_LEAVE_ROOM_PLAYER);
                     break;
                 }
             default:
@@ -587,6 +716,17 @@ public class SFSGameRoom : MonoBehaviour
     }
 
     // Create players
+    public void CreatePlayer(int i, string userName)
+    {
+        int tempPosition = (Constants.MAX_NUMBER_PLAYER - order + i) % Constants.MAX_NUMBER_PLAYER;
+        HumanPlayer humanPlayerInstance = Instantiate(sceneData.HumanPlayerPrefabs[tempPosition],
+            sceneData.PlayerPositions[i], Quaternion.identity) as HumanPlayer;
+        humanPlayerInstance.GameManager = this;
+        humanPlayerInstance.Name = i;
+        humanPlayerInstance.IsActive = true;
+        humanPlayerInstance.UserName = userName;
+        players.Add(humanPlayerInstance);   
+    }
     public void CreatePlayers(int numberPlayer, int order)
     {
         players.Clear();
@@ -606,7 +746,6 @@ public class SFSGameRoom : MonoBehaviour
         {
             players[i].IsActive = true;
         }
-        
     }
 
     // Create 52 cards
@@ -652,6 +791,19 @@ public class SFSGameRoom : MonoBehaviour
         yield return new WaitForSeconds(3f);
     }
 
+    public bool isPlayerInGame(int order)
+    {
+        bool inGame = false;
+        for(int i = 0 ; i < playerIdInGame.Count; i++)
+        {
+            if(order == playerIdInGame[i])
+            {
+                inGame = true;
+            }
+        }
+        return inGame;
+    }
+
     // Move cards to each player's position
     public void DealCards(List<Card> cards, int order)
     {
@@ -659,9 +811,12 @@ public class SFSGameRoom : MonoBehaviour
         for (int i = 0; i < Constants.CARD_AMOUNT; i++)
         {
             int temp = i % 4;
-            if(players[temp].IsActive)
+            if (temp < numberPlayer)
             {
-                players[temp].Deck.Cards.Add(cards[i]);
+                if (players[temp].IsActive)
+                {
+                    players[temp].Deck.Cards.Add(cards[i]);
+                }
             }
         }
 
@@ -684,8 +839,6 @@ public class SFSGameRoom : MonoBehaviour
         }
         
         gameState = GameState.Play;
-        
-
     }
 
     public IEnumerator DealCards_Move(List<Card> cards, int playerIndex)
@@ -807,7 +960,7 @@ public class SFSGameRoom : MonoBehaviour
         }
     }
 
-    public void SetWinEffect(int playerId, int winOrder, int lastPlayerId)
+    public void SetWinEffect(int playerId, int winOrder, int lastPlayerId, int leftPlayerNumber)
     {
         Effect tempEffect;
         GameObject tempImg;
@@ -827,72 +980,62 @@ public class SFSGameRoom : MonoBehaviour
         {
             if (lastPlayerId == this.Order)
             {
-                tempEffect = EffectManager.ShowEffect(6, sceneData.ScreenCenter, 1.0f);
+                tempEffect = EffectManager.ShowEffect(6 - (leftPlayerNumber *2), sceneData.ScreenCenter, 1.0f);
                 effects.Add(tempEffect);
             }
             else
             {
-                tempEffect = EffectManager.ShowEffect(7, sceneData.PlayerPositions[lastPlayerId], 1.0f);
+                tempEffect = EffectManager.ShowEffect(7 - (leftPlayerNumber * 2), sceneData.PlayerPositions[lastPlayerId], 1.0f);
                 effects.Add(tempEffect);
             }
-            tempImg = EffectManager.ShowImage(7, sceneData.PlayerPositions[lastPlayerId]);
+            tempImg = EffectManager.ShowImage(7 - (leftPlayerNumber * 2), sceneData.PlayerPositions[lastPlayerId]);
             imgs.Add(tempImg);
         }
     }
 
-    public void CheckWin(Player player)
+    void ShowEXP(string level, double EXP, double expThis_Level, double expNext_Level)
     {
-        Effect tempEffect;
-        GameObject tempImg;
-        if (player.Deck.Cards.Count == 0)
-        {
-            player.State = PlayerState.Win;
-            if(player.Name == this.Order)
-            {
-                tempEffect = EffectManager.ShowEffect((winPlayerNumber * 2), sceneData.ScreenCenter, 1.0f);
-                effects.Add(tempEffect);
-            }
-            else
-            {
-                tempEffect = EffectManager.ShowEffect((winPlayerNumber * 2) + 1, sceneData.PlayerPositions[player.Name], 1.0f);
-                effects.Add(tempEffect);
-            }
-            tempImg = EffectManager.ShowImage((winPlayerNumber * 2) + 1, sceneData.PlayerPositions[player.Name]);
-            imgs.Add(tempImg);
+        tk2dTextMesh lv = GameObject.Find("User/LV").GetComponent<tk2dTextMesh>();
+        Debug.Log("Level" + level);
+        lv.text = "Lv: " + level;
 
-            // Player win :D
-            if(winPlayerNumber == 0)
-            {
-                winPlayer = player.Name + 1;
-            }
-
-            winPlayerNumber++;
-            if (winPlayerNumber == (numberPlayer - 1))
-            {
-                if (LastPlayer().Name == this.Order)
-                {
-                    tempEffect = EffectManager.ShowEffect((winPlayerNumber * 2), sceneData.ScreenCenter, 1.0f);
-                    effects.Add(tempEffect);
-                }
-                else
-                {
-                    tempEffect = EffectManager.ShowEffect((winPlayerNumber * 2) + 1, sceneData.PlayerPositions[LastPlayer().Name], 1.0f);
-                    effects.Add(tempEffect);
-                }
-                tempImg = EffectManager.ShowImage((winPlayerNumber * 2) + 1, sceneData.PlayerPositions[LastPlayer().Name]);
-                imgs.Add(tempImg);
-                StartCoroutine(WaitToResetGame(3.0f));
-            }
-        }
+        tk2dUIProgressBar perLV = GameObject.Find("User/ProgressBar").GetComponent<tk2dUIProgressBar>();
+        float value = (float)((EXP - expThis_Level) / (expNext_Level - expThis_Level));
+        perLV.Value = value;
+        Debug.Log("Value" + value);
     }
+
+    void GetUserInfoMoney()
+    {
+        LamaControllib.getInstance().getAllMoneyUserService(LamaControllib.getInstance().getUserId(), GetUserInfoMoneyCallback, this);
+    }
+
+    void GetUserInfoMoneyCallback(bool success, JSON json)
+    {
+        MoneyUserModel moneyUserModel = LamaControllib.getInstance().getMoneyUserModel();
+        userInfo.transform.FindChild("Money").GetComponent<tk2dTextMesh>().text = "$ " + moneyUserModel.MoneyChip + " Đ";
+    }
+    void GetUserInfoXP()
+    {
+        LamaControllib.getInstance().getXPModelService(LamaControllib.getInstance().getUserId(), GetUserInfoXPCallback, this);
+    }
+    void GetUserInfoXPCallback(bool success, JSON json)
+    {
+        XPModel XPModel = LamaControllib.getInstance().getXPModel();
+        Debug.Log("test" + XPModel.Level);
+        ShowEXP(XPModel.Level, double.Parse(XPModel.Point), double.Parse(XPModel.CurrentLevel), double.Parse(XPModel.NextLevel));
+
+    }
+
+
 
     IEnumerator WaitToResetGame(float time)
     {
         yield return new WaitForSeconds(time);
-        ResetGame();
+        ResetGame(true);
     }
 
-    public void ResetGame()
+    public void ResetGame(bool isEnoughPlayer)
     {
         gameState = Assets.Scripts.GameState.Idle;
         isStarted = false;
@@ -900,7 +1043,10 @@ public class SFSGameRoom : MonoBehaviour
         {
             //players[i].deck.Cards.Clear();
             //players[i].State = PlayerState.Idle;
-            Destroy(players[i].gameObject);
+            if(players[i].gameObject!=null)
+            {
+                Destroy(players[i].gameObject);
+            }
         }
         cardOnTable.Clear();
         for (int i = 0; i < allCards.Count; i++)
@@ -925,11 +1071,20 @@ public class SFSGameRoom : MonoBehaviour
         effects.Clear();
         imgs.Clear();
         Utility.BubbleSortByIndex(allCards);
+        for (int i = 0; i < allCards.Count; i++ )
+        {
+            allCards[i].transform.localScale = new Vector3(0.7f, 0.7f, 0);
+        }
         currentHand = new Hand(new List<Card>());
         currentSortLayer = 1;
         currentPlaceToPutCard = 0;
         winPlayerNumber = 0;
-        SmartFoxConnection.SendRestartToServer();
+        this.btnSuperWin.gameObject.SetActive(false);
+        imgLama.SetActive(true);
+        if(isEnoughPlayer)
+        {
+            SmartFoxConnection.SendRestartToServer();
+        }
     }
 
     public void SetPositionToStart()
@@ -963,36 +1118,6 @@ public class SFSGameRoom : MonoBehaviour
         player.State = PlayerState.Idle;
     }
 
-    public void SetPlay()
-    {
-        int tempIndex = (currentPlayer.Name + 1) % Constants.MAX_NUMBER_PLAYER;
-        for(int i = 0 ; i < players.Count; i++)
-        {
-            if (players[tempIndex].IsActive)
-            {
-                if (roundPlayer.Name.Equals(players[tempIndex].Name))
-                {
-                    if (players[i].State == PlayerState.Win)
-                    {
-                        //NewRound(players[(tempIndex + 1) % Constants.MAX_NUMBER_PLAYER], this);
-                    }
-                    else
-                    {
-                        //NewRound(players[tempIndex], this);
-                    }
-                    return;
-                }
-                if (players[tempIndex].State == PlayerState.Idle)
-                {
-                    players[tempIndex].State = PlayerState.Play;
-                    currentPlayer = players[tempIndex];
-                    return;
-                }
-            }
-            tempIndex = (tempIndex + 1) % Constants.MAX_NUMBER_PLAYER ;
-        }
-    }
-
     public Player NextPlayer()
     {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.Count;
@@ -1014,6 +1139,20 @@ public class SFSGameRoom : MonoBehaviour
             }
         }
         return null;
+    }
+
+    // NOtice
+    public void SetNotice(string notice)
+    {
+        txtNotice.gameObject.SetActive(true);
+        txtNotice.text = notice;
+        StartCoroutine(WaitForNotice(Constants.NOTICE_TIME));
+    }
+
+    IEnumerator WaitForNotice(float time)
+    {
+        yield return new WaitForSeconds(time);
+        txtNotice.gameObject.SetActive(false);
     }
 
     // Get & Set
@@ -1063,5 +1202,19 @@ public class SFSGameRoom : MonoBehaviour
         get { return order; }
         set { order = value; }
     }
+    public SmartFox SfConnectObj
+    {
+        get { return sfConnectObj; }
+        set { sfConnectObj = value; }
+    }
+    public List<Card> PreviousCards
+    {
+        get { return previousCards; }
+        set { previousCards = value; }
+    }
+    public List<Card> CurrentCards
+    {
+        get { return currentCards; }
+        set { currentCards = value; }
+    }
 }
-
